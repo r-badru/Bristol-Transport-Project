@@ -87,6 +87,8 @@ const CORRS = [
   { v: "TDI to Good Health", r: -0.790, s: "Strong" },
   { v: "Transport Poverty to Poor Mental Wellbeing", r: 0.590, s: "Moderate" },
   { v: "Transport Desert to Food Insecurity", r: 0.540, s: "Moderate" },
+  { v: "TDI to Obesity (ward level)", r: 0.736, s: "Strong" },
+  { v: "Bus Service Degree to Obesity", r: -0.680, s: "Strong" },
 ];
 
 const PRIS = [
@@ -478,6 +480,23 @@ const BristolTransportDashboard = () => {
                     </ScatterChart>
                   </ResponsiveContainer>
                 </div>
+                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                  <h3 className="font-bold text-red-900 text-sm mb-2">The Sunday Service Gap</h3>
+                  <p className="text-xs text-red-800 mb-3">
+                    6 bus routes drop to zero service on Sundays, leaving peripheral wards effectively disconnected on weekends.
+                    Eleven wards — including the most transport-disadvantaged — have zero aggregate Sunday bus service.
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {['Hartcliffe & Withywood','Bishopsworth','Stockwood','Knowle','Filwood','Hengrove & Whitchurch Park','Bedminster','Southville','Windmill Hill','Central','Cotham'].map(w => (
+                      <div key={w} className="bg-white rounded-lg px-2.5 py-1.5 text-xs font-semibold text-gray-800 border border-red-100">
+                        {w}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-red-700 mt-3 italic">
+                    Routes most affected by Sunday gaps serve Eastville, Frome Vale, Horfield, Henbury & Brentry, and Southmead — up to 3 zero-Sunday routes each.
+                  </p>
+                </div>
               </div>
             )}
 
@@ -560,6 +579,35 @@ const BristolTransportDashboard = () => {
                     <div className="text-xs"><span className="text-red-600 font-semibold">Worst: </span>Hartcliffe 58.3%</div>
                   </div>
                 </div>
+                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <h3 className="font-bold text-gray-900 mb-1 text-sm">Loneliness vs Transport Disadvantage</h3>
+                  <p className="text-xs text-gray-500 mb-3">% of residents lonely because they cannot see friends or family</p>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <ScatterChart margin={{ top: 10, right: 15, bottom: 40, left: 45 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis type="number" dataKey="tdi"
+                        label={{ value: 'TDI (%)', position: 'insideBottom', offset: -10, style: { fontSize: 10 } }} />
+                      <YAxis type="number" dataKey="lonely"
+                        label={{ value: 'Lonely (%)', angle: -90, position: 'insideLeft', style: { fontSize: 10 } }} />
+                      <Tooltip content={({ active, payload }) => (
+                        <TT active={active} payload={payload} render={d => (
+                          <div><b>{d.ward}</b><br />TDI: {d.tdi}% | Lonely: {d.lonely}%</div>
+                        )} />
+                      )} />
+                      <Scatter data={WARD_DATA}>
+                        {WARD_DATA.map((e, i) => <Cell key={i} fill={e.color} />)}
+                      </Scatter>
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+                  <h3 className="font-bold text-purple-900 text-sm mb-1">The Isolation Gradient</h3>
+                  <p className="text-xs text-purple-800">
+                    Loneliness ranges from <b>1.4% in Redland</b> to <b>12.1% in Hartcliffe and Withywood</b>: a <b>9× difference</b>.
+                    The wards where residents cannot reach friends and family by transport are the same wards where transport
+                    disadvantage is highest — a structural exclusion that compounds social isolation.
+                  </p>
+                </div>
               </div>
             )}
 
@@ -593,6 +641,13 @@ const BristolTransportDashboard = () => {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
                   <b>Key finding:</b> Transport poverty correlates more strongly with feeling unsafe after dark (r = -0.86) than with any health metric.
                   This suggests transport and safety share deep structural roots in the built environment.
+                </div>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-sm text-emerald-900">
+                  <b>New finding — Transport and obesity:</b> Transport disadvantage independently predicts ward-level obesity rates.
+                  Wards with more bus service per capita have lower obesity (β = -1.18, controlling for TDI).
+                  Residualised TDI (pure transport component) predicts obesity after removing deprivation (β = 0.31, p = 0.02).
+                  This ecological association does not establish that adding bus routes would reduce obesity, but it identifies
+                  a public health concentration pattern that overlaps with transport infrastructure gaps.
                 </div>
               </div>
             )}

@@ -89,6 +89,27 @@ const CORRS = [
   { v: "Transport Desert to Food Insecurity", r: 0.540, s: "Moderate" },
   { v: "TDI to Obesity (ward level)", r: 0.736, s: "Strong" },
   { v: "Bus Service Degree to Obesity", r: -0.680, s: "Strong" },
+  { v: "Fare Burden & Physical Inactivity", r: 0.57, s: "Moderate" },
+];
+
+const SCHOOL_ABSENCE = {
+  'Ashley': 11.3, 'Avonmouth & Lawrence Weston': 13.4, 'Bedminster': 11.5,
+  'Bishopston & Ashley Down': 9.7, 'Bishopsworth': 12.3, 'Brislington East': 12.1,
+  'Brislington West': 9.9, 'Central': 11.2, 'Clifton': 9.2, 'Clifton Down': 9.3,
+  'Cotham': 8.9, 'Easton': 11.6, 'Eastville': 11.1, 'Filwood': 15.0,
+  'Frome Vale': 10.1, 'Hartcliffe & Withywood': 15.1, 'Henbury & Brentry': 12.1,
+  'Hengrove & Whitchurch Park': 12.0, 'Hillfields': 11.3, 'Horfield': 12.0,
+  'Hotwells & Harbourside': 9.3, 'Knowle': 12.7, 'Lawrence Hill': 10.5,
+  'Lockleaze': 11.6, 'Redland': 8.2, 'Southmead': 13.7, 'Southville': 9.9,
+  'St George Central': 11.1, 'St George Troopers Hill': 10.0, 'St George West': 11.5,
+  'Stockwood': 11.5, 'Stoke Bishop': 11.0, 'Windmill Hill': 11.0,
+};
+
+const COMMUNITY_QUOTES = [
+  { q: "For their family of three, if you have to pay £6 a day for a day rider ticket, that is actually more than your minimum wage per hour in Bristol.", a: "Community participant, Policy Symposium" },
+  { q: "You just see the time that the bus is meant to appear, and it just doesn't appear. We call them ghost buses. It's very frustrating.", a: "Community participant, Town Hall" },
+  { q: "Supposing you were living in Withywood and you managed to get a job in Brislington. You look at the maps, loads of buses, but you have to go to the centre and out again.", a: "Community participant, Policy Symposium" },
+  { q: "At 11 PM, sometimes it's very scary to come alone. It's a 20 minute walk which we can do in daylight. But at night, what if someone will come.", a: "International student, Community Research" },
 ];
 
 const PRIS = [
@@ -608,6 +629,49 @@ const BristolTransportDashboard = () => {
                     disadvantage is highest — a structural exclusion that compounds social isolation.
                   </p>
                 </div>
+
+                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <h3 className="font-bold text-gray-900 mb-1 text-sm">Transport Poverty vs School Absence Rate</h3>
+                  <p className="text-xs text-gray-500 mb-3">School absence data (2022, DfE) merged with ward-level transport metrics</p>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <ScatterChart margin={{ top: 10, right: 15, bottom: 40, left: 45 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis type="number" dataKey="transportPoverty"
+                        label={{ value: 'Transport Poverty (index)', position: 'insideBottom', offset: -10, style: { fontSize: 10 } }} />
+                      <YAxis type="number" dataKey="absence" domain={[7, 16]}
+                        label={{ value: 'School Absence (%)', angle: -90, position: 'insideLeft', style: { fontSize: 10 } }} />
+                      <Tooltip content={({ active, payload }) => (
+                        <TT active={active} payload={payload} render={d => (
+                          <div><b>{d.ward}</b><br />Transport Poverty: {d.transportPoverty} | Absence: {d.absence}%</div>
+                        )} />
+                      )} />
+                      <Scatter data={WARD_DATA.filter(w => SCHOOL_ABSENCE[w.ward] !== undefined).map(w => ({ ...w, absence: SCHOOL_ABSENCE[w.ward] }))}>
+                        {WARD_DATA.filter(w => SCHOOL_ABSENCE[w.ward] !== undefined).map((e, i) => <Cell key={i} fill={e.color} />)}
+                      </Scatter>
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4">
+                  <h3 className="font-bold text-indigo-900 text-sm mb-1">Education and Transport Poverty</h3>
+                  <p className="text-xs text-indigo-800">
+                    Transport poverty is associated with higher school absence rates (r = 0.64, p &lt; 0.001, N = 27 wards),
+                    a higher share of disadvantaged pupils (r = 0.73), and lower Attainment 8 scores (r = -0.70).
+                    Wards with the highest transport disadvantage are the same wards where educational precursors to
+                    poor outcomes concentrate.
+                  </p>
+                </div>
+
+                <div className="mt-4">
+                  <h3 className="font-bold text-gray-900 text-sm mb-2">Community Voice</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {COMMUNITY_QUOTES.map((c, i) => (
+                      <div key={i} className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                        <p className="text-xs italic text-gray-800 leading-relaxed">&ldquo;{c.q}&rdquo;</p>
+                        <p className="text-xs text-amber-800 mt-2">— {c.a}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -643,9 +707,9 @@ const BristolTransportDashboard = () => {
                   This suggests transport and safety share deep structural roots in the built environment.
                 </div>
                 <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-sm text-emerald-900">
-                  <b>New finding — Transport and obesity:</b> Transport disadvantage independently predicts ward-level obesity rates.
-                  Wards with more bus service per capita have lower obesity (β = -1.18, controlling for TDI).
-                  Residualised TDI (pure transport component) predicts obesity after removing deprivation (β = 0.31, p = 0.02).
+                  <b>Transport and obesity:</b> Transport disadvantage is independently associated with ward-level obesity rates.
+                  Wards with more bus service per capita show lower obesity (β = -1.18, controlling for TDI).
+                  Residualised TDI (the pure transport component) is associated with obesity after removing deprivation (β = 0.31, p = 0.02).
                   This ecological association does not establish that adding bus routes would reduce obesity, but it identifies
                   a public health concentration pattern that overlaps with transport infrastructure gaps.
                 </div>
@@ -766,8 +830,8 @@ const BristolTransportDashboard = () => {
                   <p className="text-xs text-blue-800 leading-relaxed">
                     Transport disadvantage (TDI) correlates heavily with deprivation (R² = 0.74). Without separating them, any
                     economic projection would conflate poverty costs with transport costs. By residualising, we extract the
-                    transport-specific component and test whether it independently predicts lost productivity. It does:
-                    β = 0.32, p &lt; 0.0001, R² = 0.875. This is the strongest model in the entire study.
+                    transport-specific component and test whether it independently correlates with lost productivity. It does:
+                    β = 0.32, p &lt; 0.0001, R² = 0.875. This model shows the strongest association (R² = 0.875).
                   </p>
                 </div>
 
@@ -830,7 +894,7 @@ const BristolTransportDashboard = () => {
                     </table>
                   </div>
                   <p className="text-xs text-gray-400 mt-2">
-                    Only wards where transport disadvantage exceeds what deprivation alone predicts (positive residual TDI).
+                    Only wards where transport disadvantage exceeds what deprivation alone explains (positive residual TDI).
                   </p>
                 </div>
 
@@ -906,7 +970,7 @@ const BristolTransportDashboard = () => {
 
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900">
                   <b>Methodology:</b> Residualised TDI obtained by regressing TDI on IMD deprivation score (R² = 0.74),
-                  then using the residual as a predictor of lost productivity. This isolates transport-specific disadvantage
+                  then using the residual in association with lost productivity. This isolates transport-specific disadvantage
                   from general poverty. Desert effect from OLS with binary desert status controlling for deprivation
                   (N=34, 2 desert wards). Active travel coefficient from OLS controlling for deprivation.
                   All estimates are cross-sectional associations.
